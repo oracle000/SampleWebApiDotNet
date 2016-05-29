@@ -1,0 +1,9 @@
+packages/
+SampleWebApi/bin/
+SampleWebApi/obj/
+SampleWebApi.Data/bin/
+SampleWebApi.Data/obj/
+SampleWebApi.Domain/bin/
+SampleWebApi.Domain/obj/
+SampleWebApi.Tests/bin/
+SampleWebApi.Tests/obj/
