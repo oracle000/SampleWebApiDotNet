@@ -130,6 +130,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\Installers\ApiControllerInstaller.cs" />
+    <Compile Include="App_Start\Installers\DbContextInstaller.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

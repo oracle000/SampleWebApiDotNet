@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Web.Http;
 using SampleWebApi.Data;
 using SampleWebApi.Domain;
+using System.Data.Entity;
 
 namespace SampleWebApi.Controllers
 {
@@ -24,8 +25,49 @@ namespace SampleWebApi.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid id");
             }
 
-            var todos = _dbContext.Todos.Where(t => t.User.Id == id).ToList();
-            return Request.CreateResponse(HttpStatusCode.OK, todos);
+            var user = _dbContext.Users.FirstOrDefault(u => u.Id == id);
+
+            if (user == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "User does not exists.");
+            }
+
+            var todos =
+                _dbContext.Todos
+                    .Where(t => t.User.Id == id)
+                    .ToList();
+
+            var data = new ViewTodos
+            {
+                Todos = todos.Select(t => new ViewTodo
+                {
+                    Id = t.Id, Detail = t.Detail, Done = t.Done
+                }).ToList(),
+                User = new ViewUser
+                {
+                    Id = user.Id
+                }
+            };
+
+            return Request.CreateResponse(HttpStatusCode.OK, data);
+        }
+
+        public class ViewTodos
+        {
+            public List<ViewTodo> Todos { get; set; }
+            public ViewUser User { get; set; }
+        }
+
+        public class ViewTodo
+        {
+            public int Id { get; set; }
+            public string Detail { get; set; }
+            public bool Done { get; set; }
+        }
+
+        public class ViewUser
+        {
+            public int Id { get; set; }
         }
 
         public HttpResponseMessage Post([FromBody]List<Todo> todos)

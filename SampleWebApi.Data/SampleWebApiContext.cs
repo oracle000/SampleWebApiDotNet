@@ -8,14 +8,6 @@ namespace SampleWebApi.Data
     {
         public DbSet<Todo> Todos { get; set; }
         public DbSet<User> Users { get; set; }
-
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Todo>().HasKey(t => t.Id);
-            modelBuilder.Entity<Todo>().HasRequired(t => t.User);
-            modelBuilder.Entity<User>().HasKey(u => u.Id);
-            //modelBuilder.Entity<User>().HasOptional(u => u.Todos);
-        }
     }
 
     public interface ISampleWebApiContext

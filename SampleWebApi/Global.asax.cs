@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Net.Http;
+using System.Collections.Generic;
+using System.Linq;
 using System.Web.Http;
-using System.Web.Http.Controllers;
-using System.Web.Http.Dispatcher;
+using System.Web.Http.Dependencies;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Castle.MicroKernel.Registration;
-using Castle.MicroKernel.SubSystems.Configuration;
+using Castle.MicroKernel;
+using Castle.MicroKernel.Lifestyle;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
-using SampleWebApi.Data;
+using IDependencyResolver = System.Web.Http.Dependencies.IDependencyResolver;
 
 namespace SampleWebApi
 {
@@ -17,74 +17,88 @@ namespace SampleWebApi
     // visit http://go.microsoft.com/?LinkId=9394801
     public class MvcApplication : System.Web.HttpApplication
     {
+        public static WindsorContainer Container { get; set; }
+
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
 
+            Container = new WindsorContainer();
+            Container.Install(FromAssembly.This());
+            GlobalConfiguration.Configuration.DependencyResolver = new WindsorDependencyResolver(Container.Kernel);
+
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-
-            IWindsorContainer container = new WindsorContainer();
-            container.Install(FromAssembly.This());
-
-            container.Resolve<ISampleWebApiContext>();
-
-            GlobalConfiguration.Configuration.Services.Replace(typeof(IHttpControllerActivator),
-                new WindsorCompositionRoot(container));
         }
     }
 
-    public class SampleWebApiContextWindsorInstall : IWindsorInstaller
+    internal sealed class WindsorDependencyResolver : IDependencyResolver
     {
-        public void Install(IWindsorContainer container, IConfigurationStore store)
-        {
-            container.Register(Component.For<ISampleWebApiContext>().ImplementedBy<SampleWebApiContext>());
-        }
-    }
+        private readonly IKernel _container;
 
-    public class ControllerInstaller : IWindsorInstaller
-    {
-        public void Install(IWindsorContainer container, IConfigurationStore store)
+        public WindsorDependencyResolver(IKernel container)
         {
-            container.Register(
-                Classes.FromThisAssembly()
-                    .Pick()
-                    .If(t => t.Name.EndsWith("Controller"))
-                    .Configure(configurer => configurer.Named(configurer.Implementation.Name))
-                    .LifestylePerWebRequest());
-        }
-    }
+            if (container == null)
+            {
+                throw new ArgumentNullException("container");
+            }
 
-    public class WindsorCompositionRoot : IHttpControllerActivator
-    {
-        private readonly IWindsorContainer _container;
-
-        public WindsorCompositionRoot(IWindsorContainer container)
-        {
             _container = container;
         }
 
-        public IHttpController Create(HttpRequestMessage request, HttpControllerDescriptor controllerDescriptor, Type controllerType)
+        public object GetService(Type t)
         {
-            var controller = (IHttpController) _container.Resolve(controllerType);
-            request.RegisterForDispose(new Release(() => _container.Release(controller)));
-            return controller;
+            return _container.HasComponent(t)
+                 ? _container.Resolve(t) : null;
         }
 
-        private class Release : IDisposable
+        public IEnumerable<object> GetServices(Type t)
         {
-            private readonly Action _release;
+            return _container.ResolveAll(t).Cast<object>().ToArray();
+        }
 
-            public Release(Action release)
-            {
-                _release = release;
-            }
 
-            public void Dispose()
+
+        public IDependencyScope BeginScope()
+        {
+            return new WindsorDependencyScope(_container);
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
+
+    internal sealed class WindsorDependencyScope : IDependencyScope
+    {
+        private readonly IKernel _container;
+        private readonly IDisposable _scope;
+
+        public WindsorDependencyScope(IKernel container)
+        {
+            if (container == null)
             {
-                _release();
+                throw new ArgumentNullException("container");
             }
+            _container = container;
+            _scope = container.BeginScope();
+        }
+
+        public object GetService(Type t)
+        {
+            return _container.HasComponent(t) ? _container.Resolve(t) : null;
+        }
+
+        public IEnumerable<object> GetServices(Type t)
+        {
+            return _container.ResolveAll(t).Cast<object>().ToArray();
+        }
+
+        public void Dispose()
+        {
+            _scope.Dispose();
         }
     }
 }
