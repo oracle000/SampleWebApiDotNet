@@ -44,6 +44,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MySql.Data.Entity.6.9.8\lib\net45\MySql.Data.Entity.EF6.dll</HintPath>
     </Reference>
+    <Reference Include="ShortBus">
+      <HintPath>..\packages\ShortBus.3.0.48-beta\lib\ShortBus.dll</HintPath>
+    </Reference>
+    <Reference Include="ShortBus.Markers">
+      <HintPath>..\packages\ShortBus.Markers.3.0.48-beta\lib\ShortBus.Markers.dll</HintPath>
+    </Reference>
+    <Reference Include="ShortBus.Windsor">
+      <HintPath>..\packages\ShortBus.Windsor.3.0.48-beta\lib\ShortBus.Windsor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -54,6 +63,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\PostTodos.cs" />
+    <Compile Include="Queries\GetTodosQuery.cs" />
     <Compile Include="SampleWebApiContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
