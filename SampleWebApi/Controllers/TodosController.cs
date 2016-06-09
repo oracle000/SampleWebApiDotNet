@@ -42,5 +42,17 @@ namespace SampleWebApi.Controllers
 
             return Request.CreateResponse(HttpStatusCode.Created, response.Data);
         }
+
+        public HttpResponseMessage Put([FromBody]PutTodosCommand request)
+        {
+            var response = _mediator.Request(request);
+
+            if (response.HasException())
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, response.Exception.GetBaseException().Message);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, response.Data);
+        }
     }
 }

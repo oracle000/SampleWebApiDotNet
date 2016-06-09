@@ -63,7 +63,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\PostTodos.cs" />
+    <Compile Include="Commands\PostTodosCommand.cs" />
+    <Compile Include="Commands\PutTodosCommand.cs" />
     <Compile Include="Queries\GetTodosQuery.cs" />
     <Compile Include="SampleWebApiContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
